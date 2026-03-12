@@ -1,14 +1,20 @@
-# This is the default target, which will be built when 
-# you invoke make
-.PHONY: all
-all: hello
+current_dir = $(shell pwd)
+container_name = hyperhdr-builder
+# temp_container = hyperhdr-temp
 
-# This rule tells make how to build hello from hello.cpp
-hello:
-	mkdir -p ./out
-	gcc -o ./out/hello ./src/main.c 
+.PHONY: all rebuild clean
 
-# This rule tells make to delete hello and hello.o
-.PHONY: clean 
+# Build HyperHDR and copy output
+all: clean
+	docker build --no-cache -t $(container_name) .
+	mkdir -p $(current_dir)/out
+	docker run --rm -v $(current_dir)/out:/workspace/out $(container_name) true
+
+# Rebuild image from scratch
+rebuild:
+	docker rmi $(container_name) || true
+	make all
+
+# Clean output folder
 clean:
-	rm -f hello
+	rm -rf out/*
